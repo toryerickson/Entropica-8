@@ -1,0 +1,304 @@
+# ============================================================================
+# RSCS-Q Booklet 8: Hardening Configuration
+# ============================================================================
+# Entropica Research Collective — Operations-Grade Defaults
+# Version: 1.0
+# ============================================================================
+
+# -----------------------------------------------------------------------------
+# VALIDITY HARDENING
+# -----------------------------------------------------------------------------
+validity:
+  # Bayesian posterior parameters
+  alpha: 2.0                    # Optimistic prior successes
+  beta: 1.0                     # Prior failures
+  
+  # Hysteresis bands (graded validity)
+  tau_enter: 0.70               # Threshold to enter valid state
+  tau_exit: 0.60                # Threshold to exit valid state (stay valid above)
+  
+  # Revocation rules
+  consecutive_fails_for_revocation: 2
+  revocation_window_ticks: 5
+  
+  # Grace period after revocation
+  grace_ticks_for_reentry: 3    # Stable reflections needed before re-enter
+  
+  # ReflexLog fields to expose
+  log_fields:
+    - valid_posterior
+    - valid_band
+    - grace_remaining
+    - consecutive_fails
+
+# -----------------------------------------------------------------------------
+# IDENTITY GRAPH HARDENING
+# -----------------------------------------------------------------------------
+identity_graph:
+  # Regularization parameters
+  anchor_weight: 0.05           # wa: virtual anchor edge weight
+  self_loop_weight: 0.05        # ws: self-loop weight for identity inertia
+  lineage_weight: 0.10          # wl: lineage edge weight
+  teleportation: 0.02           # δ: teleportation for ergodicity
+  laplacian_regularization: 0.02  # γ: Laplacian regularization term
+  reference_eigenvalue: 0.35    # λ_ref: reference for algebraic connectivity
+  
+  # Coherence thresholds
+  coherence_threshold: 0.65     # Minimum acceptable coherence
+  
+  # Small-N policy (N < 3)
+  small_n:
+    component_coverage_required: 1.0
+    max_shy: 0.25
+    max_drift_norm: 0.25
+  
+  # Fallback lineage synthesis
+  lineage_fallback:
+    enabled: true
+    decay_tau_ticks: 10         # Exponential decay time constant
+    max_synthesis_depth: 3
+
+  # Topology guards (boot must fail if missing)
+  required_topology:
+    - anchor_node
+    - self_loops
+    - lineage_edges
+
+# -----------------------------------------------------------------------------
+# OBSERVER MESH HARDENING
+# -----------------------------------------------------------------------------
+observer_mesh:
+  # Quorum parameters
+  quorum_threshold: 0.67        # 2/3 majority required
+  min_observers: 3              # Minimum observers for valid quorum
+  
+  # Clock discipline
+  max_clock_skew_ms: 100        # Maximum allowed clock skew
+  stale_vote_timeout_ms: 500    # Votes older than this are invalid
+  
+  # Byzantine tolerance
+  byzantine_tolerance:
+    enabled: true
+    n_minus_f_rule: true        # Require n-f honest observers
+    vote_timeout_slashing: true
+    reputation_decay_rate: 0.1  # Per-tick decay for late/contradictory votes
+    min_reputation: 0.3         # Below this, observer is suspended
+    reputation_history_votes: 10000  # Retain last 10k votes for repeat-offender detection
+    strikes_for_suspension: 3   # Permanent suspension after 3 strikes in rolling window
+  
+  # Quorum certificates
+  certificates:
+    multi_sig_required: true
+    epoch_beacon_rotation_ticks: 100
+    witness_digest_storage: true
+  
+  # Mutex escalation
+  mutex_escalation_sla_ticks: 3  # Must resolve or escalate within this
+
+# -----------------------------------------------------------------------------
+# AUDIT INTEGRITY
+# -----------------------------------------------------------------------------
+audit:
+  # Hash chain
+  hash_algorithm: sha256
+  genesis_hash: "GENESIS"
+  
+  # Merkle tree
+  merkle_per_tick: true
+  cross_sign_capsules: true
+  
+  # Epoch checkpoints
+  epoch_root:
+    enabled: true
+    interval_ticks: 100
+    observer_signature_required: true
+  
+  # Attestation rollups
+  rollups:
+    enabled: true
+    interval_ticks: 50
+    external_notary: true
+    notary_endpoint: "https://attestation.entropica.io/v1/rollup"
+    notary_provider: "Entropica Attestation Service (EAS)"
+    retention_slo_days: 180
+  
+  # Retention
+  retention_window_ticks: 1000
+  
+  # Cold-start recovery
+  recovery:
+    min_epoch_roots_hot: 3
+    checkpoint_interval_ticks: 500
+
+# -----------------------------------------------------------------------------
+# OPERATIONAL SLAs
+# -----------------------------------------------------------------------------
+slas:
+  # Timing guarantees
+  time_to_escalation_ticks: 1   # Max ticks after gate breach to escalate
+  rollback_bound_ticks: 5       # Max ticks to finalize any rollback
+  audit_ingestion_latency_ticks: 1
+  
+  # Error budgets
+  max_missing_ticks: 0          # Zero tolerance for audit gaps
+  duplicate_collapse_budget: 0.0001  # ≤10^-4 per 10k decisions
+  
+  # Recovery targets
+  drift_containment_p95_ticks: 3
+  entropy_stabilization_p95_ticks: 5
+
+# -----------------------------------------------------------------------------
+# REPAIR GOVERNANCE
+# -----------------------------------------------------------------------------
+repair:
+  # Drift-debt tracking
+  drift_debt:
+    enabled: true
+    initial_budget: 10.0        # Starting debt budget
+    cost_per_repair:
+      reset_baseline: 1.0
+      restore_confidence: 1.5
+      prune_evolution: 2.0
+      quarantine: 0.5           # Low cost - it's containment
+    max_budget: 15.0            # Quarantine model if exceeded
+    decay_rate_per_tick: 0.05   # Debt naturally decreases
+  
+  # Cooling period
+  cooling_period_ticks: 5       # No repairs for X ticks after repair
+  emergency_override: true      # Allow repair during cooling if safety breach
+  
+  # Counterfactual validation
+  counterfactual:
+    enabled: true
+    replay_percentage: 10       # Replay 10% of repaired cases without fix
+    min_uplift_required: 0.1    # Repair must show ≥10% improvement
+
+# -----------------------------------------------------------------------------
+# METRICS CALIBRATION
+# -----------------------------------------------------------------------------
+metrics:
+  # Gate thresholds
+  gates:
+    rci_min: 0.65               # Reflex Coherence Index
+    psr_min: 35.0               # Plan Stability Ratio  
+    shy_max: 0.15               # Shock Hygiene upper bound
+    shy_min: 0.0                # Shock Hygiene lower bound
+  
+  # Bayesian priors for gates
+  priors:
+    rci:
+      alpha: 5.0
+      beta: 2.0
+    psr:
+      mean: 40.0
+      std: 10.0
+    shy:
+      alpha: 2.0
+      beta: 10.0
+  
+  # Credible intervals
+  credible_interval: 0.95       # 95% credible interval for reporting
+  
+  # Calibration schedule
+  calibration:
+    interval_days: 90           # Quarterly recalibration
+    scenarios:
+      - sudden_novelty
+      - slow_drift  
+      - sparse_identity
+      - observer_lag
+      - adversarial_quorum
+    holdout_fraction: 0.2       # 20% held out for validation
+    # Canonical scenario seeds for reproducibility
+    canonical_seeds:
+      novelty: "CALIB-2025-NOVELTY-001"
+      drift: "CALIB-2025-DRIFT-001"
+      sparse: "CALIB-2025-SPARSE-001"
+      byzantine: "CALIB-2025-BYZANTINE-001"
+    # Output paths
+    ci_bounds_file: "validation/ci_bounds.json"
+    attestations_dir: "attestations/epoch-{epoch}/"
+    acceptance_template: "reports/acceptance_template.md"
+
+# -----------------------------------------------------------------------------
+# VERSION COMPATIBILITY (v3.0.1)
+# -----------------------------------------------------------------------------
+compatibility:
+  booklet8_version: "3.0.1"
+  min_versions:
+    meta_kernel_bridge_api: "2.0.0"
+    b7_reflective_autonomy: "1.5.0"
+    rscs_q_core: "3.0.0"
+    drift_monitor: "1.2.0"
+  tested_versions:
+    meta_kernel_bridge_api: "2.1.0"
+    b7_reflective_autonomy: "1.6.2"
+    rscs_q_core: "3.2.1"
+    drift_monitor: "1.3.0"
+
+# -----------------------------------------------------------------------------
+# BEHAVIORAL BRIDGE CONTRACTS (B7 → B8)
+# -----------------------------------------------------------------------------
+bridge:
+  # Measurable deltas from B7 baseline
+  targets:
+    duplicate_collapse_reduction: 0.50  # ≥50% reduction
+    time_to_merge_p95_ticks: 2          # ≤2 ticks for observer conflict merge
+    psr_drift_max: 0.10                 # ≤10% PSR drift under standard load
+  
+  # Inherited invariants (must prove in B8-T1...T5)
+  invariants:
+    - no_unbinding
+    - single_source_alignment
+    - transparency_over_restriction
+  
+  # Interface deltas (new in B8)
+  interface_deltas:
+    - quorum_channel
+    - constraints_hash_channel
+    - lineage_ptr_channel
+    - mutation_api_no_unbinding
+    - alignment_anchor_declaration
+
+# -----------------------------------------------------------------------------
+# SIMULATION PARAMETERS
+# -----------------------------------------------------------------------------
+simulation:
+  # Random seed for reproducibility
+  random_seed: 42
+  
+  # Model generation
+  num_models: 10
+  max_lineage_depth: 4
+  children_per_model:
+    min: 1
+    max: 3
+  rubrics_per_model: 3
+  
+  # Drift injection
+  drift_injection_rate: 0.15
+  drift_severity:
+    min: 0.30
+    max: 0.50
+  
+  # Stress testing
+  stress_scenarios:
+    enabled: true
+    failure_injection_rate: 0.05
+    byzantine_observer_rate: 0.1
+    network_partition_probability: 0.02
+
+# -----------------------------------------------------------------------------
+# LOGGING AND MONITORING
+# -----------------------------------------------------------------------------
+logging:
+  level: INFO
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  
+  # Detailed logging for specific subsystems
+  subsystems:
+    validity: DEBUG
+    identity_graph: INFO
+    observer_mesh: INFO
+    repair_engine: DEBUG
+    audit: INFO

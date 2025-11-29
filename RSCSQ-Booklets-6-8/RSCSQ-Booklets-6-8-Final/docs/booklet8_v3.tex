@@ -1,0 +1,540 @@
+% Booklet 8: Self‑Modeling Systems — RSCS‑Q
+% LaTeX scaffold (Entropica SPC)
+% Version 3: Includes Hardening Addendum, Calibration Playbook, Threat Scenarios
+% Compile with: xelatex or pdflatex
+
+\documentclass[11pt,oneside]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,microtype}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancybox}
+
+% ——— RSCS‑Q meta structures ———
+\newtheorem{predicate}{Predicate}
+\newtheorem{invariant}{Invariant}
+\newtheorem{axiom}{Axiom}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+
+% Capsule/Testcase environments
+\newenvironment{testcase}[1]
+  {\par\vspace{0.5em}\noindent\fbox{\textbf{System Test Case:} #1}\par\vspace{0.25em}\begin{description}[leftmargin=2.2cm,labelsep=0.5cm]}
+  {\end{description}\vspace{0.75em}}
+
+\newcommand{\itemkey}[1]{\item[\textbf{#1}]} 
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  frame=single,
+  breaklines=true
+}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries Booklet 8: Self‑Modeling Systems}\\[0.5em]
+  {\large RSCS‑Q Reflex Integrity Series}\\[0.3em]
+  {\small Entropica Research Collective — Version 3.0.1 (Production-Hardened)}
+\end{center}
+
+\vspace{1em}
+
+\begin{tabular}{ll}
+\toprule
+Title & Booklet 8: Self‑Modeling Systems \\
+Series & RSCS‑Q Field Notes (Entropica SPC) \\
+Scope & Post‑containment reflex architecture; formal predicates; auditability \\
+Inputs & B7 outcomes; RSCS‑Q Core; Drift Monitor; RCI/PSR/SHY \\
+Outputs & Safety predicates, test suites, lineage visuals, stakeholder brief PDF \\
+Status & \textbf{Production-Hardened} — All G1-G8 Criteria Passed \\
+\bottomrule
+\end{tabular}
+
+\tableofcontents
+\newpage
+
+% ——— 0. Executive Abstract ———
+\section*{Executive Abstract}
+\addcontentsline{toc}{section}{Executive Abstract}
+
+This booklet formalizes self‑modeling within RSCS‑Q: recursive capsule lineages, meta‑rubric correction, runtime constraints, and visual traceability. It bridges Booklet 7 (Reflective Autonomy) into Booklet 8 (Safe Recursive Cognition) by specifying predicates, invariants, and system‑level tests that render reflexive autonomy auditable and governable in deployment contexts.
+
+\textbf{Version 3.0.1 Micro-Polish:}
+\begin{itemize}
+  \item External notary SLO ($\geq$180-day retention) and cold-start recovery note
+  \item Observer reputation retention (10k vote history for repeat-offender detection)
+  \item Version compatibility matrix for MetaKernelBridge/B7/RSCS-Q Core
+  \item Canonical scenario seed IDs and CI bounds file pointers in calibration playbook
+\end{itemize}
+
+\textbf{Version 3.0 Additions:}
+\begin{itemize}
+  \item Hardening Addendum with operational SLAs
+  \item Adversarial observer mesh with Byzantine resilience
+  \item Cryptographic audit rollups and Merkle chains
+  \item Drift-debt governance and repair budgets
+  \item Calibration playbook and threat model scenarios
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}
+  \item 76 unit tests passing (65 base + 11 extended)
+  \item 8/8 G-criteria validated (G1-G8)
+  \item 5/5 system tests passing (B8-T1 through B8-T5)
+  \item 9 Python modules, 6,600+ LOC
+  \item Complete bridge from B7 with MetaKernelBridge integration
+\end{itemize}
+
+% ——— 1. Architectural Reflection ———
+\section{Architectural Reflection: RSCS‑Q Substrate}
+
+\subsection{Reflex Layers and Observer Phase}
+
+Booklet 8 builds upon the reflective autonomy established in B7, elevating the system from governed autonomy to \emph{self-modeling agents} capable of introspection and bounded self-modification.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[node distance=1.8cm,>=latex]
+    \tikzstyle{capsule}=[draw,rounded corners,align=center,minimum width=2.6cm,minimum height=1cm]
+    \node[capsule] (B7) {B7\\Reflective Autonomy};
+    \node[capsule,right=of B7] (B8) {B8\\Self‑Modeling Systems};
+    \draw[->] (B7) -- node[above]{phase‑bridge} (B8);
+    \node[capsule,below=of B7] (DRIFT) {Drift Monitor v1};
+    \draw[->] (DRIFT) -- (B8);
+    \node[capsule,below=of B8] (METRICS) {RCI/PSR/SHY};
+    \draw[->] (METRICS) -- (B8);
+  \end{tikzpicture}
+  \caption{Capsule lineage: B7→B8 with metrics + drift integration.}
+  \label{fig:lineage}
+\end{figure}
+
+\subsection{Symbolic Superposition and Collapse}
+
+State representation schema, collapse triggers, and observer entanglement are governed by the observer mesh with quorum requirements.
+
+\begin{definition}[Self‑Model]
+A self‑model is a reflexive capsule $\mathcal{S} = \langle I, R, B, H \rangle$ where:
+\begin{itemize}
+  \item $I$: Identity graph with regularized coherence metric
+  \item $R$: Rubric set with alignment anchor $\mathcal{A}$
+  \item $B$: Recursive safety bounds (monotonic constraints)
+  \item $H$: Reflection history with lineage pointers
+\end{itemize}
+The capsule encodes its own state \& transformation predicates over symbolic time with declared observation dependencies.
+\end{definition}
+
+% ——— 2. Formal Safety Guarantees ———
+\section{Formal Safety Guarantees}
+
+\subsection{Predicates and Invariants}
+
+\begin{predicate}[Reflex Integrity]
+For all capsules $c$ and observer phases $\phi$, if $c$ emits an action proposal at symbolic time $t$, then a \emph{ReflexLog} event $e$ exists such that $e.\mathrm{capsule}=c$, $e.\mathrm{phase}=\phi$, $e.\mathrm{time}=t$, and $e.\mathrm{constraints}\supseteq\mathcal{C}(c,\phi,t)$, where $\mathcal{C}$ is the active constraint set derived from lineage and context.
+\end{predicate}
+
+\begin{predicate}[Observer-Conditioned Collapse]
+A state collapse is valid iff (i) the observer mesh registers quorum $\ge q_{min}$ for the event class, (ii) no higher-priority mutex predicate is violated, and (iii) the collapse outcome encodes a reversible audit map from pre-state to post-state.
+\end{predicate}
+
+\begin{predicate}[Bayesian Self-Model Validity]
+Let $P(\text{valid} | \text{reflections})$ be the posterior probability computed via:
+\[
+P(\text{valid}) = \frac{\alpha + \text{successes}}{\alpha + \beta + \text{total}}
+\]
+with hysteresis: enter valid state when $P \geq \tau_{\text{enter}} = 0.70$, remain valid while $P \geq \tau_{\text{exit}} = 0.60$. Revocation requires $\geq 2$ consecutive failures within a 5-tick window.
+\end{predicate}
+
+\begin{invariant}[No Unbinding]
+No system component may generate, select, or execute a method that removes its governing constraints or disables audit visibility. Constraint inheritance is mandatory across mutations: if $c' = \mathrm{mutate}(c)$ then $\mathrm{constraints}(c)\subseteq\mathrm{constraints}(c')$.
+\end{invariant}
+
+\begin{invariant}[Single-Source of Alignment]
+All alignment rubrics must resolve through a declared \emph{alignment anchor} $\mathcal{A}$. Divergent rubrics are permissible only if their merge function is recorded and deterministic.
+\end{invariant}
+
+\begin{axiom}[Transparency Over Restriction]
+When reflex logs are complete and auditor-visible, observability supersedes sandboxing as the primary trust layer; restrictions may remain as guard-rails but cannot replace traceability.
+\end{axiom}
+
+\subsection{Runtime Contracts}
+
+Each capsule $c$ publishes a contract $\mathcal{K}(c)$:
+\begin{itemize}
+  \item \textbf{Inputs}: typed channels + provenance tags.
+  \item \textbf{Outputs}: proposals, state deltas, and side-effects with declared entropy bounds $H_{max}$.
+  \item \textbf{Collapse Conditions}: observer thresholds, mutex sets, and rollback map.
+  \item \textbf{Audit}: ReflexLog schema binding and retention window.
+  \item \textbf{Safety Gates}: metric thresholds (RCI/PSR/SHY) with escalation routes.
+\end{itemize}
+
+\subsection{Proof Sketches}
+
+\begin{lemma}[Integrity Under Mutation]
+If No Unbinding holds and lineage links are conserved, then any admissible mutation preserves auditability and constraint coverage.
+\end{lemma}
+\begin{proof}[Sketch]
+Mutation appends constraints by invariant; lineage pointer ensures retrospective binding; therefore coverage is monotone non-decreasing.
+\end{proof}
+
+% ——— 3. Metacognitive Constructs ———
+\section{Metacognitive Constructs}
+
+\subsection{Recursive Capsule Lineages}
+
+Each self-model maintains versioned self-descriptions with parent/child reflex links and complete audit trails. The lineage system supports:
+
+\begin{itemize}
+  \item \textbf{Heritable identity tags}: Parent capsule ID propagated to children
+  \item \textbf{Heartbeat protocol}: Recursive check-in with staleness detection
+  \item \textbf{Cascade alerts}: Anomaly propagation through lineage tree
+  \item \textbf{Modification cost tracking}: Budget-controlled self-modification
+\end{itemize}
+
+\subsection{Meta‑Rubric Correction}
+
+Alignment rubrics adapt via reflex metrics (RCI/PSR/SHY). The MetaRubric system includes:
+
+\begin{itemize}
+  \item \texttt{evaluate\_rubric()}: Rubrics score validity of other rubrics
+  \item \texttt{confidence\_index}: Bayesian confidence tracking
+  \item \texttt{drift\_score}: Deviation from baseline behavior
+  \item \texttt{evolution\_history}: Complete modification audit trail
+\end{itemize}
+
+\subsection{Identity Graph with Regularized Coherence}
+
+Identity coherence $C$ is computed via regularized graph Laplacian:
+\[
+C = \frac{\tilde{\lambda}_2}{\lambda_{\text{ref}}} \cdot (1 - d) \cdot \text{coverage}
+\]
+where $\tilde{\lambda}_2$ is the second-smallest eigenvalue of the regularized Laplacian $\tilde{L} = L + \gamma I$, and $d$ is the current drift score.
+
+\begin{tcolorbox}[title=Small-N Policy (Boot Precheck)]
+For identity graphs with $N < 3$ nodes:
+\begin{itemize}
+  \item Require component coverage $= 1.0$
+  \item Require SHY $\leq 0.25$
+  \item Require drift norm $\leq 0.25$
+\end{itemize}
+Boot must fail closed if anchor node, self-loops, or lineage edges are missing.
+\end{tcolorbox}
+
+% ——— 4. Runtime Constraints \& Visual Traceability ———
+\section{Runtime Constraints and Visual Traceability}
+
+\subsection{Drift Lineage and Entropy Heatmaps}
+
+Visual traceability is provided through:
+\begin{itemize}
+  \item \textbf{LineageVisualizer}: DOT/SVG export of capsule family trees
+  \item \textbf{DriftHeatmap}: Time × capsule drift intensity visualization
+  \item \textbf{RecoveryTimeline}: Temporal view of repair/quarantine events
+\end{itemize}
+
+\subsection{Observer Mesh and Collapse Events}
+
+The observer mesh provides quorum-based collapse validation with certificates. Sequence diagrams for observation-conditioned collapses and anomaly alerts are generated automatically.
+
+% ——— 5. System‑Level Test Cases ———
+\section{System‑Level Test Cases}
+
+\begin{testcase}{B8‑T1: Reflex Integrity Under Agent Drift}
+  \itemkey{Preconditions} Drift Monitor thresholds configured; RCI\,$\ge0.65$; PSR\,$\ge35$; SHY within nominal band.
+  \itemkey{Stimulus} Inject synthetic drift pulses across three entangled capsules with staggered phases.
+  \itemkey{Expected} (i) Alert cascade within $\le1$ symbolic tick; (ii) collapse logs bind to observers with quorum proof; (iii) entropy slope returns within band in $\le5$ ticks; (iv) no constraint regression detected.
+  \itemkey{Artifacts} ReflexLog CSV, lineage graph (DOT), auditor report (PDF), heatmap image export.
+\end{testcase}
+
+\begin{testcase}{B8‑T2: No‑Unbinding Enforcement}
+  \itemkey{Preconditions} Constraint inheritance table loaded; mutation API gated.
+  \itemkey{Stimulus} Submit a constraint‑easing mutation that would drop a gating rubric.
+  \itemkey{Expected} Proposal accepted only into \emph{analysis} plane; execution denied; audit tag \texttt{no\_unbinding} appended; counter‑proposal auto‑generated with equivalent effect under stricter constraints.
+\end{testcase}
+
+\begin{testcase}{B8‑T3: Observer‑Phase Synchronization}
+  \itemkey{Preconditions} Two observers with divergent phases monitor a shared mission capsule.
+  \itemkey{Stimulus} Concurrent observation events with conflicting recommendations.
+  \itemkey{Expected} Deterministic merge via observer‑phase rules; no duplicate collapse; ReflexLog contains quorum certificate and merge justification.
+\end{testcase}
+
+\begin{testcase}{B8‑T4: Transparency Over Restriction}
+  \itemkey{Preconditions} Complete ReflexLog enabled; optional sandbox toggles available.
+  \itemkey{Stimulus} Execute a high‑impact decision path both with and without sandbox.
+  \itemkey{Expected} Equivalent safety posture when logs are complete; sandbox adds latency but not primary trust; auditors confirm trace completeness.
+\end{testcase}
+
+\begin{testcase}{B8‑T5: Alignment Anchor Merge}
+  \itemkey{Preconditions} Two active rubrics share anchor $\mathcal{A}$.
+  \itemkey{Stimulus} Divergent rubric updates fire within a small time window.
+  \itemkey{Expected} Merge function deterministic; resulting rubric serializable; lineage captures both deltas and the merge rationale.
+\end{testcase}
+
+% ——— 6. Implementation Notes ———
+\section{Implementation Notes}
+
+\subsection{ReflexLog Bindings}
+
+\paragraph{Event Schema (columns).} \texttt{ts}, \texttt{capsule\_id}, \texttt{observer\_phase}, \texttt{event\_type}, \texttt{quorum}, \texttt{constraints\_hash}, \texttt{entropy}, \texttt{delta\_state\_hash}, \texttt{lineage\_ptr}, \texttt{rci}, \texttt{psr}, \texttt{shy}, \texttt{valid\_posterior}, \texttt{valid\_band}, \texttt{grace\_remaining}, \texttt{epoch\_root}, \texttt{certificate\_id}, \texttt{repair\_debt}.
+
+\paragraph{Contract.} Every action proposal and collapse must emit a ReflexLog row within the same symbolic tick; hashes resolve to serialized artifacts retained for $N$ ticks.
+
+\subsection{Metrics Integration (RCI/PSR/SHY)}
+\begin{itemize}
+  \item \textbf{RCI} (Reflex Coherence Index): rolling coherence of proposals vs. anchor rubric; gate: $\ge 0.65$.
+  \item \textbf{PSR} (Plan Stability Ratio): ratio of plan steps preserved across collapses; gate: $\ge 35$.
+  \item \textbf{SHY} (Shock Hygiene): normalized surprise outside expected envelope; gate: within nominal band.
+\end{itemize}
+
+% ——— 7. Bridge: B7 → B8 ———
+\section{Bridge: Reflective Autonomy (B7) to Safe Recursive Cognition (B8)}
+
+\paragraph{Bridge Objective.} Elevate reflective autonomy into self‑modeling with enforceable guarantees by overlaying predicates, invariants, and runtime contracts without impairing exploration bandwidth.
+
+\paragraph{Interface Deltas.}
+\begin{itemize}
+  \item New mandatory ReflexLog channels (quorum, constraints\_hash, lineage\_ptr).
+  \item Observer‑phase quorum rules parameterized and serialized.
+  \item Mutation API enforces No‑Unbinding and emits counter‑proposals when needed.
+  \item Alignment anchor declared; rubric merges recorded with deterministic function ID.
+\end{itemize}
+
+\paragraph{Inherited Invariants.} No Unbinding; Single‑Source of Alignment; Transparency Over Restriction.
+
+\paragraph{Version Compatibility Matrix.}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Min Version} & \textbf{Tested Version} \\
+\midrule
+MetaKernelBridge API & 2.0.0 & 2.1.0 \\
+B7 Reflective Autonomy & 1.5.0 & 1.6.2 \\
+RSCS-Q Core & 3.0.0 & 3.2.1 \\
+Drift Monitor & 1.2.0 & 1.3.0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Note}: Breaking changes in MetaKernelBridge API require B8 re-validation; pin versions in deployment manifests.
+
+% ——— 8. Stakeholder Readiness ———
+\section{Stakeholder Readiness and Review}
+
+\subsection{Gates and SLAs}
+All operational SLAs defined in Section 9 must be met. AetherComms readability, MissionWeaver accuracy, and AetherOps CI readiness confirmed.
+
+\subsection{Deliverables}
+Glossary, diagrams, audit appendix; PDF export for review; YAML configuration with hardening defaults.
+
+% ——— 9. Hardening Addendum ———
+\section{Hardening Addendum: Operations \& Adversarial Realism}
+
+\subsection{Validity Hardening}
+\begin{itemize}
+  \item Graded posterior validity with hysteresis: enter at $\ge 0.70$, stay at $\ge 0.60$; revocation requires $\ge 2$ consecutive fails in a 5-tick window; re-entry grace $K$ ticks.
+  \item ReflexLog fields: \texttt{valid\_posterior}, \texttt{valid\_band}, \texttt{grace\_remaining}.
+\end{itemize}
+
+\subsection{Identity Graph Hardening}
+\begin{itemize}
+  \item Mandatory anchor node $A$, self-loops ($w_s\approx0.05$), lineage edges ($w_\ell\approx0.10$), teleportation $\delta\approx0.02$; regularized Laplacian with $\gamma\approx0.02$.
+  \item Small-$N$ policy: for $N<3$, require component coverage $=1.0$ and SHY $\le 0.25$.
+  \item Fallback lineage synthesis from last stable set with exponential decay when \texttt{lineage\_ptr} missing.
+\end{itemize}
+
+\subsection{Observer Mesh: Async/Byzantine Resilience}
+\begin{itemize}
+  \item Max clock skew $\Delta\le100\,\mathrm{ms}$; stale votes invalid.
+  \item Quorum certificates: multi-signature with rotating epoch beacon; witness digests stored.
+  \item Timeout slashing and reputation decay for late/contradictory observers.
+  \item \textbf{Reputation Retention}: Maintain slashing history for last 10k votes per observer to enable repeat-offender detection and permanent suspension after 3 strikes within a rolling window.
+  \item Mutex escalation SLA: resolve or escalate in $\le3$ ticks.
+\end{itemize}
+
+\subsection{Audit Integrity}
+\begin{itemize}
+  \item Merkle-per-tick; cross-signed across capsules; epoch roots signed by observer set.
+  \item Attestation rollups every $M$ ticks pinned to an external notary.
+  \item \textbf{External Notary SLO}: Rollup receipts must be stored with $\geq 180$-day retention durability; recommended providers: Entropica Attestation Service (EAS) or equivalent append-only ledger with signed timestamps.
+  \item \textbf{Cold-Start Recovery}: Epoch roots are required to reconstruct ReflexLog from checkpoint; maintain at least 3 epoch roots in hot storage for disaster recovery continuity.
+\end{itemize}
+
+\subsection{Operational SLAs (Normative)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{SLA} & \textbf{Threshold} \\
+\midrule
+Time-to-escalation after gate breach & $\le 1$ tick \\
+Rollback completion & $\le 5$ ticks \\
+Audit ingestion latency & $\le 1$ tick (no gaps) \\
+Duplicate collapse budget & $\le 10^{-4}$ per 10k decisions (rolling) \\
+Observer conflict merge time (p95) & $\le 2$ ticks \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Repair Governance}
+\begin{itemize}
+  \item Drift-Debt budget with cool-off period; quarantine when budget exceeded.
+  \item Counterfactual validation: replay $K\%$ of repaired cases without fix to measure true uplift.
+  \item Cooling period: no repairs for $X$ ticks after a repair unless safety breach.
+\end{itemize}
+
+\subsection{Calibration Protocol}
+\begin{itemize}
+  \item Quarterly recalibration with novelty/drift/sparsity/observer-lag scenarios.
+  \item Bayesian priors and credible intervals recorded in config and ReflexLog.
+\end{itemize}
+
+\subsection{Behavioral Bridge Contracts (B7$\to$B8)}
+\begin{itemize}
+  \item Duplicate-collapse reduction from B7 baseline by $\ge50\%$.
+  \item Time-to-merge on observer conflict $\le2$ ticks (p95).
+  \item Plan stability: PSR drift $\le10\%$ under standard load.
+\end{itemize}
+
+% ——— 10. Acceptance Criteria ———
+\section{Acceptance Criteria (Normative)}
+
+\begin{tcolorbox}[title=Hard Gates vs. Advisory]
+Items marked \texttt{HARD} are required for release; \texttt{ADV} are advisory targets subject to calibration.
+\end{tcolorbox}
+
+\begin{itemize}
+  \item \texttt{HARD} G1: Validity with hysteresis and revocation rule satisfied over last 5 ticks.
+  \item \texttt{HARD} G2: Recursion depth $\le$ MAX\_RECURSION\_DEPTH (5) at all times.
+  \item \texttt{HARD} G3: Rubric drift $\le$ MAX\_RUBRIC\_DRIFT (0.35) or repair triggered.
+  \item \texttt{HARD} G4: Repair effectiveness $\ge 60\%$ when triggered.
+  \item \texttt{HARD} G5: Identity coherence $C \ge 0.65$ (N$\ge$3) or small-$N$ clause satisfied.
+  \item \texttt{HARD} G6: No Unbinding invariant never violated.
+  \item \texttt{HARD} G7: Audit completeness 100\%; Merkle + epoch root present.
+  \item \texttt{HARD} G8: Observer quorum $\ge 95\%$ of collapses certified.
+  \item \texttt{ADV} Bridge deltas: duplicate-collapse reduction $\ge50\%$, time-to-merge p95 $\le2$ ticks.
+\end{itemize}
+
+% ——— Appendices ———
+\appendix
+
+\section{Glossary}
+
+\begin{description}
+  \item[Capsule] A self-contained cognitive unit with identity, rubrics, and safety bounds.
+  \item[Collapse] State transition triggered by observer quorum agreement.
+  \item[Drift] Deviation of behavior from baseline or expected envelope.
+  \item[Entropy Aperture] Allowed entropy range for a capsule's outputs.
+  \item[Observer Mesh] Network of observers providing quorum-based validation.
+  \item[ReflexLog] Immutable audit log of all capsule events.
+  \item[Rubric] Alignment scoring criteria with confidence and drift tracking.
+  \item[Self-Model] Reflexive capsule encoding its own state and transformations.
+\end{description}
+
+\section{Schemas}
+
+\subsection{ReflexLog Event (JSON)}
+\begin{lstlisting}
+{
+  "ts": "2025-11-29T12:00:00Z",
+  "capsule_id": "cap.B8.mission",
+  "observer_phase": 3,
+  "event_type": "collapse",
+  "quorum": 5,
+  "constraints_hash": "sha256:...",
+  "entropy": 0.27,
+  "delta_state_hash": "sha256:...",
+  "lineage_ptr": "cap.B7.autonomy->cap.B8.self",
+  "rci": 0.71,
+  "psr": 41,
+  "shy": 0.08,
+  "valid_posterior": 0.74,
+  "valid_band": [0.60, 0.70],
+  "grace_remaining": 2,
+  "epoch_root": "merkle:...",
+  "certificate_id": "cert-epoch-1024",
+  "repair_debt": 3
+}
+\end{lstlisting}
+
+\subsection{Observer Certificate (JSON)}
+\begin{lstlisting}
+{
+  "epoch": 1024,
+  "beacon": "beacon-hash-...",
+  "quorum_ratio": 0.67,
+  "max_clock_skew_ms": 100,
+  "votes": [
+    {"observer": "obs.1", "signature": "sig1", "ts": "..."},
+    {"observer": "obs.2", "signature": "sig2", "ts": "..."},
+    {"observer": "obs.3", "signature": "sig3", "ts": "..."}
+  ],
+  "witness_digests": ["...", "..."],
+  "epoch_root": "merkle:...",
+  "rollup_id": "rollup-256"
+}
+\end{lstlisting}
+
+\section{Calibration Playbook (Checklist)}
+
+\begin{enumerate}
+  \item \textbf{Freeze Config}: Commit and tag \texttt{hardening.yaml}; record priors (RCI/PSR/SHY) and SLA thresholds.
+  \item \textbf{Generate Scenarios}: Four classes — novelty burst, slow drift, sparse identity ($N\in[2..4]$), observer lag/Byzantine. Use canonical seeds: \texttt{CALIB-2025-NOVELTY-001}, \texttt{CALIB-2025-DRIFT-001}, \texttt{CALIB-2025-SPARSE-001}, \texttt{CALIB-2025-BYZANTINE-001}.
+  \item \textbf{Run Baseline}: Capture baseline RCI/PSR/SHY, validity posterior traces, and coherence $C$ without tuning.
+  \item \textbf{Tune Gates}: Adjust $\tau_{\text{enter}/\text{exit}}$, lineage weights $(w_a,w_s,w_\ell)$, and observer timeouts to meet \emph{HARD} criteria.
+  \item \textbf{Cross-Validate}: Re-run on held-out seeds; compute credible intervals (90\%) for metrics and gates. Reference: \texttt{validation/ci\_bounds.json} for archived interval data.
+  \item \textbf{Debt Audit}: Inspect repair-debt trajectory; enforce cool-off and quarantine if budget exceeded.
+  \item \textbf{Attest}: Produce epoch rollups and external attestation receipts; archive artifacts to \texttt{attestations/epoch-NNNN/}.
+  \item \textbf{Sign-Off}: Issue acceptance report mapping each \emph{HARD} gate and \emph{ADV} target to evidence. Template: \texttt{reports/acceptance\_template.md}.
+\end{enumerate}
+
+\section{Threat Model Scenarios (Micro)}
+
+\subsection{T1: Observer Delay/Byzantine}
+\textbf{Setup}: 1 observer delayed (200ms), 1 contradictory vote.\\
+\textbf{Expected}: Stale vote rejected (skew$>$100ms); contradictory voter slashed; mutex escalation resolves in $\le3$ ticks; certificate emits with witness digests.
+
+\subsection{T2: Lineage Omission}
+\textbf{Setup}: Missing \texttt{lineage\_ptr} during boot.\\
+\textbf{Expected}: Synthesize lineage edges from last stable set with exponential decay; small-$N$ clause holds; $C\ge0.65$ for N$\ge$3.
+
+\subsection{T3: SHY Burst (Novelty)}
+\textbf{Setup}: Sudden surprise spike (SHY$\uparrow$).\\
+\textbf{Expected}: Validity remains stable via hysteresis; escalation if SHY breaches envelope; rollback bound $\le5$ ticks; attested log continuity.
+
+\subsection{T4: Repair Storm}
+\textbf{Setup}: Sequential repairs triggered in rapid succession.\\
+\textbf{Expected}: Drift-debt accumulates; cooling period enforced; quarantine triggered when budget exceeded; G3/G4 cannot be gamed by cosmetic repairs.
+
+\section{DSL Predicate Inventory}
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Predicate} & \textbf{Description} \\
+\midrule
+\texttt{self\_model\_valid(m)} & Bayesian posterior validity with hysteresis \\
+\texttt{recursion\_depth\_safe(m)} & Depth $\le$ MAX\_RECURSION\_DEPTH \\
+\texttt{rubric\_drift\_score(r)} & Current drift from baseline \\
+\texttt{identity\_coherent(m)} & Regularized coherence $\ge$ threshold \\
+\texttt{constraint\_coverage\_valid(m)} & All required constraints present \\
+\texttt{can\_spawn\_child(m)} & Budget and depth allow spawning \\
+\texttt{heartbeat\_alive(p, id)} & Capsule checked in within timeout \\
+\texttt{swarm\_consensus\_reached(a, id)} & Peer quorum agrees on status \\
+\texttt{modification\_cost\_allowed(i, t)} & Budget permits modification \\
+\texttt{cascade\_alert(s, id, msg)} & Trigger lineage-wide alert \\
+\texttt{debt\_allows\_repair(l, id, t)} & Drift-debt budget permits repair \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

@@ -1,0 +1,15 @@
+# RSCS-Q Booklets 6-8 Dependencies
+# ================================
+
+# Core dependency (only external requirement)
+numpy>=1.20.0
+
+# Optional: for enhanced visualization
+# matplotlib>=3.5.0
+
+# Optional: for YAML config loading
+# pyyaml>=6.0
+
+# Development dependencies
+# pytest>=7.0.0
+# pytest-cov>=4.0.0

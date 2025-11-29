@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Observer Certificate Schema (v3.0.1)",
+  "description": "Schema for RSCS-Q Observer quorum certificates with Byzantine resilience",
+  "type": "object",
+  "required": [
+    "epoch",
+    "beacon",
+    "quorum_ratio",
+    "max_clock_skew_ms",
+    "votes",
+    "epoch_root"
+  ],
+  "properties": {
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Epoch number"
+    },
+    "beacon": {
+      "type": "string",
+      "pattern": "^beacon-hash-[a-f0-9]+$",
+      "description": "Rotating epoch beacon hash"
+    },
+    "quorum_ratio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Achieved quorum ratio (≥0.67 required)"
+    },
+    "max_clock_skew_ms": {
+      "type": "integer",
+      "maximum": 100,
+      "description": "Maximum allowed clock skew in milliseconds"
+    },
+    "votes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["observer", "signature", "ts"],
+        "properties": {
+          "observer": {
+            "type": "string",
+            "description": "Observer identifier"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Vote signature"
+          },
+          "ts": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Vote timestamp"
+          },
+          "vote": {
+            "type": "boolean",
+            "description": "Vote value (true=approve)"
+          }
+        }
+      },
+      "description": "Array of observer votes"
+    },
+    "witness_digests": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Witness digest hashes"
+    },
+    "epoch_root": {
+      "type": "string",
+      "pattern": "^merkle:[a-f0-9]{64}$",
+      "description": "Merkle root for this epoch"
+    },
+    "rollup_id": {
+      "type": "string",
+      "pattern": "^rollup-[0-9]+$",
+      "description": "Attestation rollup identifier"
+    },
+    "slashing_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "observer": {"type": "string"},
+          "reason": {"type": "string"},
+          "reputation_delta": {"type": "number"}
+        }
+      },
+      "description": "Any slashing events during this epoch (v3.0.1)"
+    }
+  },
+  "additionalProperties": false
+}

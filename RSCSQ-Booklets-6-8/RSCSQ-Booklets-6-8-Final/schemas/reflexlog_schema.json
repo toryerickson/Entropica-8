@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReflexLog Event Schema (v3.0.1)",
+  "description": "Schema for RSCS-Q Booklet 8 ReflexLog events with hardening fields",
+  "type": "object",
+  "required": [
+    "ts",
+    "capsule_id",
+    "observer_phase",
+    "event_type",
+    "quorum",
+    "constraints_hash",
+    "entropy",
+    "delta_state_hash",
+    "lineage_ptr",
+    "rci",
+    "psr",
+    "shy"
+  ],
+  "properties": {
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp"
+    },
+    "capsule_id": {
+      "type": "string",
+      "pattern": "^cap\\.[A-Za-z0-9_.]+$",
+      "description": "Capsule identifier"
+    },
+    "observer_phase": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Observer phase number"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["reflection", "collapse", "action_proposal", "mutation", "quarantine", "repair"],
+      "description": "Type of logged event"
+    },
+    "quorum": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of observers in quorum"
+    },
+    "constraints_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 hash of active constraints"
+    },
+    "entropy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Normalized entropy measure"
+    },
+    "delta_state_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 hash of state delta"
+    },
+    "lineage_ptr": {
+      "type": "string",
+      "description": "Lineage pointer (parent->child format)"
+    },
+    "rci": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Reflex Coherence Index"
+    },
+    "psr": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Plan Stability Ratio"
+    },
+    "shy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Shock Hygiene (normalized surprise)"
+    },
+    "valid_posterior": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Bayesian posterior validity (v3.0)"
+    },
+    "valid_band": {
+      "type": "array",
+      "items": {"type": "number"},
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "Hysteresis band [tau_exit, tau_enter] (v3.0)"
+    },
+    "grace_remaining": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Ticks remaining in grace period (v3.0)"
+    },
+    "epoch_root": {
+      "type": "string",
+      "pattern": "^merkle:[a-f0-9]{64}$",
+      "description": "Merkle root for epoch (v3.0)"
+    },
+    "certificate_id": {
+      "type": "string",
+      "pattern": "^cert-epoch-[0-9]+$",
+      "description": "Observer certificate ID (v3.0)"
+    },
+    "repair_debt": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current drift-debt level (v3.0)"
+    }
+  },
+  "additionalProperties": false
+}

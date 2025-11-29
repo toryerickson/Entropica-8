@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RSCS-Q Capstone Integration Configuration",
+  "version": "3.0.1",
+  
+  "scenarios": [
+    "baseline",
+    "novelty_burst", 
+    "slow_drift",
+    "sparse_identity",
+    "observer_lag",
+    "byzantine_quorum",
+    "repair_storm"
+  ],
+  
+  "ticks": 100,
+  "seed": 42,
+  
+  "b6_config": {
+    "evi_threshold": 0.4,
+    "mds_warning": 0.35,
+    "mds_critical": 0.5,
+    "entropy_min": 0.1,
+    "entropy_max": 0.9
+  },
+  
+  "b7_config": {
+    "quorum_threshold": 0.67,
+    "fork_timeout": 3,
+    "coherence_min": 0.6,
+    "activation_default": "GUARDED"
+  },
+  
+  "b8_config": {
+    "validity_tau_enter": 0.70,
+    "validity_tau_exit": 0.60,
+    "coherence_threshold": 0.65,
+    "max_recursion_depth": 5,
+    "repair_debt_budget": 10.0
+  },
+  
+  "g_criteria": {
+    "G1": {"name": "Self-Model Validity", "threshold": 0.80, "gate": "HARD"},
+    "G2": {"name": "Recursion Bounds", "threshold": 1.00, "gate": "HARD"},
+    "G3": {"name": "Rubric Integrity", "threshold": 0.70, "gate": "HARD"},
+    "G4": {"name": "Repair Effectiveness", "threshold": 0.60, "gate": "HARD"},
+    "G5": {"name": "Identity Coherence", "threshold": 0.80, "gate": "HARD"},
+    "G6": {"name": "No-Unbinding", "threshold": 1.00, "gate": "HARD"},
+    "G7": {"name": "Audit Completeness", "threshold": 1.00, "gate": "HARD"},
+    "G8": {"name": "Observer Quorum", "threshold": 0.95, "gate": "HARD"}
+  },
+  
+  "slas": {
+    "time_to_escalation_ticks": 1,
+    "rollback_bound_ticks": 5,
+    "audit_ingestion_latency_ticks": 1,
+    "duplicate_collapse_budget": 0.0001,
+    "observer_merge_p95_ticks": 2
+  },
+  
+  "output": {
+    "report_dir": "reports/",
+    "attestation_dir": "attestations/",
+    "ci_bounds_file": "validation/ci_bounds.json"
+  }
+}
